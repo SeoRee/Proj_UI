@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 namespace Animation.BTN
 {
+    public enum AlphaHit { None, Hit }
     public enum ButtonAnimationType { None, All, Color, Size }
-    public enum ButtonShape { Square, Circle }
     public class ButtonAnim
     {
         public static void Play(Image _btnImage, bool _expand)
@@ -23,13 +23,13 @@ namespace Animation.BTN
                 lerpTime += Time.unscaledDeltaTime * 15;
                 lerpTime = Mathf.Clamp01(lerpTime);
 
-                if (!_expand)
+                if (_expand)
                 {
-                    _btnRect.localScale = Vector2.Lerp(startScale, Vector2.one * 0.9f, lerpTime);
+                    _btnRect.localScale = Vector2.Lerp(startScale, Vector2.one, lerpTime);
                 }
                 else
                 {
-                    _btnRect.localScale = Vector2.Lerp(startScale, Vector2.one, lerpTime);
+                    _btnRect.localScale = Vector2.Lerp(startScale, Vector2.one * 0.9f, lerpTime);
                 }
 
                 if (lerpTime.Equals(1)) break;
@@ -49,15 +49,15 @@ namespace Animation.BTN
                 lerpTime += Time.unscaledDeltaTime * 15;
                 lerpTime = Mathf.Clamp01(lerpTime);
 
-                if (!_expand)
-                {
-                    _btnRect.localScale = Vector2.Lerp(startScale, Vector2.one * 0.9f, lerpTime);
-                    _windowImage.color = Color.Lerp(startColor, Color.gray, lerpTime);
-                }
-                else
+                if (_expand)
                 {
                     _btnRect.localScale = Vector2.Lerp(startScale, Vector2.one, lerpTime);
                     _windowImage.color = Color.Lerp(startColor, Color.white, lerpTime);
+                }
+                else
+                {
+                    _btnRect.localScale = Vector2.Lerp(startScale, Vector2.one * 0.9f, lerpTime);
+                    _windowImage.color = Color.Lerp(startColor, Color.gray, lerpTime);
                 }
 
                 if (lerpTime.Equals(1)) break;
