@@ -3,16 +3,16 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CustomEditor : EditorWindow
+public class PrefabCtreateEditor : Editor
 {
-    [MenuItem("GameObject/Custom UI/Button")]
+    [MenuItem("GameObject/Custom UI/Button", false, 0)]
     static void CreateButton()
     {
         var prefabPath = "Assets/CustomUI/03_Prefabs/Button.prefab";
         ButtonCreator(prefabPath);
     }
 
-    [MenuItem("GameObject/Custom UI/Button with text")]
+    [MenuItem("GameObject/Custom UI/Button with text", false, 1)]
     static void CreateButtonWithText()
     {
         var prefabPath = "Assets/CustomUI/03_Prefabs/ButtonWithText.prefab";

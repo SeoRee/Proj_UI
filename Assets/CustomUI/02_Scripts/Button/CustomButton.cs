@@ -5,11 +5,12 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
+[ExecuteInEditMode]
 public class CustomButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
 {
-
-    private Image childBtnImage = null;
-    private RectTransform btnRect = null;
+    public Sprite sprite;
+    public Image childBtnImage = null;
+    public RectTransform btnRect = null;
     private IEnumerator buttonAnimCoroutine = null;
 
     public AlphaHit buttonAlphaHit = AlphaHit.None;
