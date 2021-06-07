@@ -13,16 +13,12 @@ public class CustomButtonEditor : Editor
     SerializedProperty animationType;
     SerializedProperty scale;
     SerializedProperty clickEvents;
-    SerializedProperty child;
+    SerializedProperty childImage;
+    SerializedProperty btnRect;
 
     void OnEnable()
     {
-        //Debug.Log("Call onenable");
-        //if(customBtn == null)
-        //{
-        //    customBtn = target as CustomButton;
-        //}
-         
+
         if (cb == null)
         {
             cb = target as CustomButton;
@@ -32,8 +28,10 @@ public class CustomButtonEditor : Editor
             animationType = serializedObject.FindProperty("buttonType");
             scale = serializedObject.FindProperty("targetScale");
             clickEvents = serializedObject.FindProperty("clickEvents");
-            child = serializedObject.FindProperty("childBtnImage");
-            child.objectReferenceValue = Selection.activeGameObject.transform.GetChild(0).GetComponent<Image>();
+            childImage = serializedObject.FindProperty("childBtnImage");
+            btnRect = serializedObject.FindProperty("btnRect");
+            childImage.objectReferenceValue = Selection.activeGameObject.transform.GetChild(0).GetComponent<Image>();
+            btnRect.objectReferenceValue = Selection.activeGameObject.GetComponent<RectTransform>();
         }
     }
 
@@ -45,72 +43,60 @@ public class CustomButtonEditor : Editor
         EditorGUILayout.PropertyField(sprite);
         EditorGUILayout.PropertyField(alphaHit);
         EditorGUILayout.PropertyField(animationType);
-        EditorGUILayout.PropertyField(scale);
         EditorGUILayout.PropertyField(clickEvents);
-        serializedObject.ApplyModifiedProperties();
 
         //Debug.Log(sprite.objectReferenceValue == null);
         if (sprite.objectReferenceValue != null)
         {
             EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(scale);
+
             if (GUILayout.Button("Apply"))
             {
                 Apply();
             }
         }
+
+        serializedObject.ApplyModifiedProperties();
     }
 
     void Apply()
     {
-        //var images = cb.GetComponentsInChildren<Image>();
-        //Debug.Log(images.Length);
-        //for (int i = 0; i < images.Length; i++)
-        //{
-        //    images[i].sprite = sprite.objectReferenceValue as Sprite;
-
-        //    if (images[i].sprite != null)
-        //    {
-        //        images[i].SetNativeSize();
-        //        images[i].rectTransform.sizeDelta *= scale.floatValue;
-
-        //        if (images[i].raycastTarget && cb.buttonAlphaHit == AlphaHit.Hit)
-        //            images[i].alphaHitTestMinimumThreshold = 0.1f;
-        //    }
-        //}
-
-        Image image = child.objectReferenceValue as Image;
-        image.sprite = sprite.objectReferenceValue as Sprite;
-        image.SetNativeSize();
-        image.rectTransform.sizeDelta *= scale.floatValue;
-        SerializedObject imageObject = new SerializedObject(image);
-
-        var pop = imageObject.GetIterator();
-
-        while (pop.NextVisible(true))
+        //Image sprite set to child image component
         {
-            Debug.Log(pop.propertyPath);
+            Image image = childImage.objectReferenceValue as Image;
+            image.sprite = cb.sprite;
+            image.SetNativeSize();
+            image.rectTransform.sizeDelta *= scale.floatValue;
+            SerializedObject so = new SerializedObject(image);
+
+            //Get latest serializedObject and apply
+            so.Update();
+            so.ApplyModifiedProperties();
         }
 
-        //Get latest serializedObject and apply
-        imageObject.Update();
-        imageObject.ApplyModifiedProperties();
+        //Set the cover(button) size to image size
+        {
+            RectTransform rect = btnRect.objectReferenceValue as RectTransform;
+            rect.sizeDelta = cb.childBtnImage.rectTransform.sizeDelta;
+            SerializedObject so = new SerializedObject(rect);
 
-        //var images = Selection.activeGameObject.GetComponentsInChildren<Image>();
-        //Debug.Log(images.Length);
-        //for (int i = 0; i < images.Length; i++)
-        //{
-        //    Image image = images[i];
-        //    SerializedProperty ImageSprite = serializedObject.FindProperty("images[i].sprite");
-        //    ImageSprite.objectReferenceValue = sprite.objectReferenceValue;
+            //Get latest serializedObject and apply
+            so.Update();
+            so.ApplyModifiedProperties();
 
-        //    if (images[i].sprite != null)
-        //    {
-        //        images[i].SetNativeSize();
-        //        images[i].rectTransform.sizeDelta *= scale.floatValue;
+            if (cb.buttonAlphaHit == AlphaHit.Hit)
+            {
+                //SerializedProperty temp = new SerializedProperty()
+                //Image image = imageObj.obj as Image;
+                //image.sprite = cb.sprite;
+                //image.alphaHitTestMinimumThreshold = 0.1f;
+                //SerializedObject so2 = new SerializedObject(image);
 
-        //        if (images[i].raycastTarget && cb.buttonAlphaHit == AlphaHit.Hit)
-        //            images[i].alphaHitTestMinimumThreshold = 0.1f;
-        //    }
-        //}
+                ////Get latest serializedObject and apply
+                //so2.Update();
+                //so2.ApplyModifiedProperties();
+            }
+        }
     }
 }
