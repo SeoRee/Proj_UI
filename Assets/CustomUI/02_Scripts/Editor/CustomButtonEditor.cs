@@ -18,7 +18,6 @@ public class CustomButtonEditor : Editor
 
     void OnEnable()
     {
-
         if (cb == null)
         {
             cb = target as CustomButton;
@@ -30,34 +29,40 @@ public class CustomButtonEditor : Editor
             clickEvents = serializedObject.FindProperty("clickEvents");
             childImage = serializedObject.FindProperty("childBtnImage");
             btnRect = serializedObject.FindProperty("btnRect");
-            childImage.objectReferenceValue = Selection.activeGameObject.transform.GetChild(0).GetComponent<Image>();
-            btnRect.objectReferenceValue = Selection.activeGameObject.GetComponent<RectTransform>();
         }
     }
 
     public override void OnInspectorGUI()
     {
-        //if (customBtn == null) return;
+        if (cb == null) return;
 
         serializedObject.Update();
+        //Cash properties
+        childImage.objectReferenceValue = Selection.activeGameObject.transform.GetChild(0).GetComponent<Image>();
+        btnRect.objectReferenceValue = Selection.activeGameObject.GetComponent<RectTransform>();
+        //Show properties
         EditorGUILayout.PropertyField(sprite);
-        EditorGUILayout.PropertyField(alphaHit);
         EditorGUILayout.PropertyField(animationType);
         EditorGUILayout.PropertyField(clickEvents);
 
-        //Debug.Log(sprite.objectReferenceValue == null);
+        serializedObject.ApplyModifiedProperties();
+
         if (sprite.objectReferenceValue != null)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(scale);
 
-            if (GUILayout.Button("Apply"))
-            {
-                Apply();
-            }
+            serializedObject.Update();
+            EditorGUILayout.PropertyField(alphaHit);
+            EditorGUILayout.PropertyField(scale);
+            serializedObject.ApplyModifiedProperties();
+
+            if (GUILayout.Button("Apply")) Apply();
+        }
+        else
+        {
+            Apply();
         }
 
-        serializedObject.ApplyModifiedProperties();
     }
 
     void Apply()
@@ -65,38 +70,55 @@ public class CustomButtonEditor : Editor
         //Image sprite set to child image component
         {
             Image image = childImage.objectReferenceValue as Image;
-            image.sprite = cb.sprite;
-            image.SetNativeSize();
-            image.rectTransform.sizeDelta *= scale.floatValue;
-            SerializedObject so = new SerializedObject(image);
 
-            //Get latest serializedObject and apply
+            SerializedObject so = new SerializedObject(image);
+            //Get latest serializedObject
             so.Update();
+            so.FindProperty("m_Sprite").objectReferenceValue = sprite.objectReferenceValue;
+            //Apply
             so.ApplyModifiedProperties();
+
+            //Resize the rect
+            if (sprite.objectReferenceValue != null)
+            {
+                image.SetNativeSize();
+                image.rectTransform.sizeDelta *= scale.floatValue;
+            }
         }
 
         //Set the cover(button) size to image size
         {
             RectTransform rect = btnRect.objectReferenceValue as RectTransform;
             rect.sizeDelta = cb.childBtnImage.rectTransform.sizeDelta;
-            SerializedObject so = new SerializedObject(rect);
 
-            //Get latest serializedObject and apply
-            so.Update();
-            so.ApplyModifiedProperties();
-
+            //If use alphahit, apply sprite to image component
             if (cb.buttonAlphaHit == AlphaHit.Hit)
             {
-                //SerializedProperty temp = new SerializedProperty()
-                //Image image = imageObj.obj as Image;
-                //image.sprite = cb.sprite;
-                //image.alphaHitTestMinimumThreshold = 0.1f;
-                //SerializedObject so2 = new SerializedObject(image);
+                Image image = rect.GetComponent<Image>();
+                SerializedObject so = new SerializedObject(image);
+                SerializedProperty property = so.FindProperty("m_Sprite");
+                so.Update();
 
-                ////Get latest serializedObject and apply
-                //so2.Update();
-                //so2.ApplyModifiedProperties();
+                //Check sprite option for alphaHitThresHold
+                var spriteOption = sprite.objectReferenceValue as Sprite;
+                if(spriteOption != null && spriteOption.texture.isReadable == false)
+                {
+                    Debug.LogWarning("Sprite texture is not readable. Try enable 'Read/Write enabled' to use alphaHitThresHold.");
+                    property.objectReferenceValue = null;
+                }
+                else
+                {
+                    property.objectReferenceValue = sprite.objectReferenceValue;
+                }
+
+                so.ApplyModifiedProperties();
             }
         }
     }
+
+    /*
+     * ************* Get Properties
+     * var properties = SerializedObject.GetIterator();
+     * while (properties.NextVisible(true)) Debug.Log(properties.propertyPath);
+     */
 }

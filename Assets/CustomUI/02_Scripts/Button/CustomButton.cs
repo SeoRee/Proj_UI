@@ -24,24 +24,11 @@ public class CustomButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
 
     private void Start()
     {
-        //if (childBtnImage == null)
-        //{
-        //    childBtnImage = transform.GetChild(0).GetComponent<Image>();
-        //    childBtnImage.rectTransform.sizeDelta *= targetScale;
-        //}
-
-        //if (btnRect == null)
-        //{
-        //    btnRect = GetComponent<RectTransform>();
-        //    btnRect.sizeDelta = childBtnImage.rectTransform.sizeDelta;
-
-        //    if (buttonAlphaHit == AlphaHit.Hit)
-        //    {
-        //        var image = GetComponent<Image>();
-        //        image.sprite = childBtnImage.sprite;
-        //        image.alphaHitTestMinimumThreshold = 0.1f;
-        //    }
-        //}
+        if (buttonAlphaHit == AlphaHit.Hit)
+        {
+            var image = GetComponent<Image>();
+            image.alphaHitTestMinimumThreshold = 0.1f;
+        }
     }
 
     private void PlayButtonAnim(bool _expand)
