@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [CustomEditor(typeof(CustomButton))]
-[CanEditMultipleObjects]
+//[CanEditMultipleObjects]
 public class CustomButtonEditor : Editor
 {
     private CustomButton cb = null;
