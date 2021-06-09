@@ -1,13 +1,13 @@
 using Animation.BTN;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
 [CustomEditor(typeof(CustomButton))]
-//[CanEditMultipleObjects]
+[CanEditMultipleObjects]
 public class CustomButtonEditor : Editor
 {
-    private CustomButton cb = null;
     SerializedProperty sprite;
     SerializedProperty alphaHit;
     SerializedProperty animationType;
@@ -16,12 +16,11 @@ public class CustomButtonEditor : Editor
     SerializedProperty childImage;
     SerializedProperty btnRect;
 
+    #region Single Code
     void OnEnable()
     {
-        if (cb == null)
+        if (target != null)
         {
-            cb = target as CustomButton;
-
             sprite = serializedObject.FindProperty("sprite");
             alphaHit = serializedObject.FindProperty("buttonAlphaHit");
             animationType = serializedObject.FindProperty("buttonType");
@@ -34,16 +33,36 @@ public class CustomButtonEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        if (cb == null) return;
+        if (target == null) return;
 
         serializedObject.Update();
-        //Cash properties
-        childImage.objectReferenceValue = Selection.activeGameObject.transform.GetChild(0).GetComponent<Image>();
-        btnRect.objectReferenceValue = Selection.activeGameObject.GetComponent<RectTransform>();
+        //Cach properties from each gameObjects
+        if (childImage.objectReferenceValue == null)
+        {
+            for (int i = 0; i < Selection.gameObjects.Length; i++)
+            {
+                //serializedOBject.targetObject - CustomButton
+                //Selection.gameOBject - GameObject
+                if (serializedObject.targetObject.name == Selection.gameObjects[i].name)
+                    childImage.objectReferenceValue = Selection.transforms[i].GetChild(0).GetComponent<Image>();
+            }
+        }
+
+        if(btnRect.objectReferenceValue == null)
+        {
+            for (int i = 0; i < Selection.gameObjects.Length; i++)
+            {
+                if (serializedObject.targetObject.name == Selection.gameObjects[i].name)
+                    btnRect.objectReferenceValue = Selection.transforms[i].GetComponent<RectTransform>();
+            }
+        }
+
         //Show properties
         EditorGUILayout.PropertyField(sprite);
         EditorGUILayout.PropertyField(animationType);
         EditorGUILayout.PropertyField(clickEvents);
+        //EditorGUILayout.PropertyField(childImage);
+        //EditorGUILayout.PropertyField(btnRect);
 
         serializedObject.ApplyModifiedProperties();
 
@@ -67,54 +86,71 @@ public class CustomButtonEditor : Editor
 
     void Apply()
     {
-        //Image sprite set to child image component
+        for (int i = 0; i < Selection.gameObjects.Length; i++)
         {
-            Image image = childImage.objectReferenceValue as Image;
+            CustomButton customBtn = Selection.gameObjects[i].GetComponent<CustomButton>();
+            SerializedObject customBtnSO = new SerializedObject(customBtn);
+            SerializedProperty imageProperty = customBtnSO.FindProperty("childBtnImage");
+            SerializedProperty spriteProperty = customBtnSO.FindProperty("sprite");
+            SerializedProperty scaleProperty = customBtnSO.FindProperty("targetScale");
+            SerializedProperty rectProperty = customBtnSO.FindProperty("btnRect");
 
-            SerializedObject so = new SerializedObject(image);
-            //Get latest serializedObject
-            so.Update();
-            so.FindProperty("m_Sprite").objectReferenceValue = sprite.objectReferenceValue;
-            //Apply
-            so.ApplyModifiedProperties();
+            Image image = null;
+            SerializedObject so = null;
 
-            //Resize the rect
-            if (sprite.objectReferenceValue != null)
+            //Set the rendering(child) image, rectTransform
             {
-                image.SetNativeSize();
-                image.rectTransform.sizeDelta *= scale.floatValue;
-            }
-        }
+                image = imageProperty.objectReferenceValue as Image;
 
-        //Set the cover(button) size to image size
-        {
-            RectTransform rect = btnRect.objectReferenceValue as RectTransform;
-            rect.sizeDelta = cb.childBtnImage.rectTransform.sizeDelta;
-
-            //If use alphahit, apply sprite to image component
-            if (cb.buttonAlphaHit == AlphaHit.Hit)
-            {
-                Image image = rect.GetComponent<Image>();
-                SerializedObject so = new SerializedObject(image);
-                SerializedProperty property = so.FindProperty("m_Sprite");
+                so = new SerializedObject(image);
+                //Get latest serializedObject
                 so.Update();
-
-                //Check sprite option for alphaHitThresHold
-                var spriteOption = sprite.objectReferenceValue as Sprite;
-                if(spriteOption != null && spriteOption.texture.isReadable == false)
-                {
-                    Debug.LogWarning("Sprite texture is not readable. Try enable 'Read/Write enabled' to use alphaHitThresHold.");
-                    property.objectReferenceValue = null;
-                }
-                else
-                {
-                    property.objectReferenceValue = sprite.objectReferenceValue;
-                }
-
+                so.FindProperty("m_Sprite").objectReferenceValue = spriteProperty.objectReferenceValue;
+                //Apply
                 so.ApplyModifiedProperties();
+
+                //Resize the rect
+                if (spriteProperty.objectReferenceValue != null)
+                {
+                    image.SetNativeSize();
+                    image.rectTransform.sizeDelta *= scaleProperty.floatValue;
+                }
+            }
+
+            //Set the cover(parent) image, rectTransform
+            {
+                //Resize the rect
+                RectTransform rect = rectProperty.objectReferenceValue as RectTransform;
+                rect.sizeDelta = image.rectTransform.sizeDelta;
+
+                //Set the cover image
+                //If use alphahit, apply sprite to image component
+                if (customBtn.buttonAlphaHit == AlphaHit.Hit)
+                {
+                    image = rect.GetComponent<Image>();
+                    so = new SerializedObject(image);
+                    //Get the property in cover image component
+                    SerializedProperty property = so.FindProperty("m_Sprite");
+                    so.Update();
+
+                    //Check sprite option for alphaHitThresHold
+                    var spriteOption = spriteProperty.objectReferenceValue as Sprite;
+                    if (spriteOption != null && spriteOption.texture.isReadable == false)
+                    {
+                        Debug.LogWarning($"{customBtn.name} : Sprite texture is not readable. Try enable 'Read/Write enabled' to use alphaHitThresHold.");
+                        property.objectReferenceValue = null;
+                    }
+                    else
+                    {
+                        property.objectReferenceValue = spriteProperty.objectReferenceValue;
+                    }
+
+                    so.ApplyModifiedProperties();
+                }
             }
         }
     }
+    #endregion
 
     /*
      * ************* Get Properties
