@@ -164,8 +164,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60ab15eb8146d7741ba0c892ea783cb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sprite: {fileID: 0}
+  childBtnImage: {fileID: 1804756615448526668}
+  btnRect: {fileID: 3736010933607371967}
   buttonAlphaHit: 0
-  buttonType: 0
+  buttonType: 1
   targetScale: 1
   clickEvents:
     m_PersistentCalls:

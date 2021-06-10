@@ -8,6 +8,7 @@ using UnityEngine.UI;
 [CanEditMultipleObjects]
 public class CustomButtonEditor : Editor
 {
+    CustomButton cb;
     SerializedProperty sprite;
     SerializedProperty alphaHit;
     SerializedProperty animationType;
@@ -16,11 +17,12 @@ public class CustomButtonEditor : Editor
     SerializedProperty childImage;
     SerializedProperty btnRect;
 
-    #region Single Code
     void OnEnable()
     {
-        if (target != null)
+        if (cb == null)
         {
+            cb = target as CustomButton;
+
             sprite = serializedObject.FindProperty("sprite");
             alphaHit = serializedObject.FindProperty("buttonAlphaHit");
             animationType = serializedObject.FindProperty("buttonType");
@@ -33,7 +35,7 @@ public class CustomButtonEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        if (target == null) return;
+        if (cb == null) return;
 
         serializedObject.Update();
         //Cach properties from each gameObjects
@@ -44,7 +46,7 @@ public class CustomButtonEditor : Editor
                 //serializedOBject.targetObject - CustomButton
                 //Selection.gameOBject - GameObject
                 if (serializedObject.targetObject.name == Selection.gameObjects[i].name)
-                    childImage.objectReferenceValue = Selection.transforms[i].GetChild(0).GetComponent<Image>();
+                    childImage.objectReferenceValue = Selection.gameObjects[i].transform.GetChild(0).GetComponent<Image>();
             }
         }
 
@@ -53,7 +55,7 @@ public class CustomButtonEditor : Editor
             for (int i = 0; i < Selection.gameObjects.Length; i++)
             {
                 if (serializedObject.targetObject.name == Selection.gameObjects[i].name)
-                    btnRect.objectReferenceValue = Selection.transforms[i].GetComponent<RectTransform>();
+                    btnRect.objectReferenceValue = Selection.gameObjects[i].GetComponent<RectTransform>();
             }
         }
 
@@ -61,8 +63,6 @@ public class CustomButtonEditor : Editor
         EditorGUILayout.PropertyField(sprite);
         EditorGUILayout.PropertyField(animationType);
         EditorGUILayout.PropertyField(clickEvents);
-        //EditorGUILayout.PropertyField(childImage);
-        //EditorGUILayout.PropertyField(btnRect);
 
         serializedObject.ApplyModifiedProperties();
 
@@ -79,7 +79,10 @@ public class CustomButtonEditor : Editor
         }
         else
         {
-            Apply();
+            //Overriding or reverting the prefab when there is no sprite
+            //in prefab will cause error.
+            //Cause : childImage.objectRef is null
+            if (childImage.objectReferenceValue != null) Apply();
         }
 
     }
@@ -150,11 +153,14 @@ public class CustomButtonEditor : Editor
             }
         }
     }
-    #endregion
 
     /*
      * ************* Get Properties
      * var properties = SerializedObject.GetIterator();
      * while (properties.NextVisible(true)) Debug.Log(properties.propertyPath);
+     * 
+     * ************* Chaching check
+     * EditorGUILayout.PropertyField(childImage);
+     * EditorGUILayout.PropertyField(btnRect);
      */
 }
