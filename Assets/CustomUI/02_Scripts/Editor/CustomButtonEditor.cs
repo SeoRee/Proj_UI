@@ -1,11 +1,9 @@
 using Animation.BTN;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-[CustomEditor(typeof(CustomButton))]
-[CanEditMultipleObjects]
+[CustomEditor(typeof(CustomButton)), CanEditMultipleObjects]
 public class CustomButtonEditor : Editor
 {
     CustomButton cb;
